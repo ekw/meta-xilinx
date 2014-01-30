@@ -11,3 +11,5 @@ MBCCARGSENDIAN += "${@bb.utils.contains("TUNE_FEATURES", "big-endian", "-mbig-en
 MBPKGENDIAN .= "${@bb.utils.contains("TUNE_FEATURES", "big-endian", "eb", "" ,d)}"
 
 TUNECONFLICTS[little-endian] = "big-endian"
+# Little Endian supported on v8.00 and newer
+TUNECONFLICTS[little-endian] += "v7.30"
