@@ -1,5 +1,6 @@
 require linux-dtb.inc
 require linux-machine-config.inc
+require linux-microblaze-config.inc
 
 # MicroBlaze is a uImage target, but its not called 'uImage'
 DEPENDS_append_microblaze += "u-boot-mkimage-native"
