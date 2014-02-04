@@ -43,3 +43,29 @@ do_install_prepend() {
 		done
 	fi
 }
+
+# returns all the elements from the src uri that are .cfg files
+def find_config_fragments(d):
+    sources=src_patches(d, True)
+    sources_list=[]
+    for s in sources:
+        if s.endswith('.cfg'):
+            sources_list.append(s)
+    return sources_list
+
+KERNEL_CONFIGS ?= "${@" ".join(find_config_fragments(d))}"
+
+python do_kernel_configure_generate () {
+    pass
+}
+
+do_kernel_configure_merge () {
+	if [ ! -z "${KERNEL_CONFIGS}" ]; then
+		# Merge the config files into a final .config file for the kernel, using
+		# the merge_config.sh kernel script.
+		${S}/scripts/kconfig/merge_config.sh -m ${KERNEL_CONFIGS}
+	fi
+}
+
+addtask kernel_configure_generate after do_unpack before do_kernel_configure_merge
+addtask kernel_configure_merge after do_kernel_configure_generate before do_configure

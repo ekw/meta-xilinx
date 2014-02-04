@@ -28,22 +28,3 @@ COMPATIBLE_MACHINE = "qemumicroblaze|qemuzynq|microblaze|zynq"
 # Arch specific kernel configuration parts
 MACHINE_KCONFIG_append_zynq += "common/zynq_defconfig_${LINUX_VERSION}.cfg"
 MACHINE_KCONFIG_append_microblaze += "common/microblaze_defconfig_${LINUX_VERSION}.cfg"
-
-# returns all the elements from the src uri that are .cfg files
-def find_config_fragments(d):
-    sources=src_patches(d, True)
-    sources_list=[]
-    for s in sources:
-        if s.endswith('.cfg'):
-            sources_list.append(s)
-    return sources_list
-
-KERNEL_CONFIGS ?= "${@" ".join(find_config_fragments(d))}"
-
-kernel_do_configure_prepend() {
-	if [ ! -z "${KERNEL_CONFIGS}" ]; then
-		# Merge the config files into a final .config file for the kernel, using
-		# the merge_config.sh kernel script.
-		${S}/scripts/kconfig/merge_config.sh -O ${B} ${KERNEL_CONFIGS}
-	fi
-}
