@@ -3,30 +3,35 @@
 # options for the Kernel.
 #
 
-def get_mb_configs(d):
-	cfgs = []
+KERNEL_CONFIGS_MICROBLAZE_GENERATED = "${WORKDIR}/microblaze.machine.config"
+KERNEL_CONFIGS_append_microblaze += "${KERNEL_CONFIGS_MICROBLAZE_GENERATED}"
 
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_HW_VER=\"%s\"" % d.getVar("MBCPUVERSION", True))
+def tune_features_index(d, *args):
+    value = 0
+    tunes = (d.getVar("TUNE_FEATURES", True) or "").split()
+    for count, i in enumerate(args):
+        enumvalue = len(args) - count
+        if i in tunes and enumvalue > value:
+            value = enumvalue
+    return "%d" % value
 
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_DIV=%s" %
-			bb.utils.contains("TUNE_FEATURES", "divide-hard", "1", "0", d))
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_FPU=%s" %
-			bb.utils.contains("TUNE_FEATURES", "fpu-hard", "1", "0", d))
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_HW_MUL=%s" %
-			bb.utils.contains("TUNE_FEATURES", "multiply-high", "2",
-				bb.utils.contains("TUNE_FEATURES", "multiply-low", "1", "0", d), d))
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_BARREL=%s" %
-			bb.utils.contains("TUNE_FEATURES", "barrel-shift", "1", "0", d))
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR=%s" %
-			bb.utils.contains("TUNE_FEATURES", "pattern-compare", "1", "0", d))
+python do_kernel_configure_generate_append_microblaze () {
+    cfgs = {}
 
-	cfgs.append("CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR=%s" %
-			bb.utils.contains("TUNE_FEATURES", "msr", "1", "0", d))
+    cfgs["CONFIG_XILINX_MICROBLAZE0_HW_VER"] = "\"%s\"" % d.getVar("MBCPUVERSION", True)
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_DIV"] = tune_features_index(d, "divide-hard")
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_FPU"] = tune_features_index(d, "fpu-hard")
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_HW_MUL"] = tune_features_index(d, "multiply-high", "multiply-low")
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_BARREL"] = tune_features_index(d, "barrel-shift")
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR"] = tune_features_index(d, "pattern-compare")
+    cfgs["CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR"] = tune_features_index(d, "msr")
 
-	return "\\n".join(cfgs) + "\\n"
-
-KERNEL_CONFIGS_append_microblaze += "${WORKDIR}/microblaze.machine.config"
-
-kernel_do_configure_prepend_microblaze () {
-	printf "${@get_mb_configs(d)}" > ${WORKDIR}/microblaze.machine.config
+    generatepath = d.getVar("KERNEL_CONFIGS_MICROBLAZE_GENERATED", True)
+    if generatepath:
+        with open(generatepath, "w") as cfgfile:
+            cfgfile.write("\n")
+            for i in cfgs.iteritems():
+                cfgfile.write("%s=%s\n" % (i[0], i[1]))
+            cfgfile.write("\n")
 }
+
