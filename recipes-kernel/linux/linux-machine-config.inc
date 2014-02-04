@@ -53,10 +53,36 @@ def find_config_fragments(d):
             sources_list.append(s)
     return sources_list
 
-KERNEL_CONFIGS ?= "${@" ".join(find_config_fragments(d))}"
+KERNEL_CONFIGS_VAR_GENERATED ?= "${WORKDIR}/generated.cfg"
+KERNEL_CONFIGS ?= "${@" ".join(find_config_fragments(d))} ${KERNEL_CONFIGS_VAR_GENERATED}"
+
+def field_kconfig(value):
+    import re
+    svalue = value.strip()
+    if svalue.isdigit():
+        return svalue
+    elif re.match("^0x[0-9A-Fa-f]*$", svalue):
+        return svalue
+    elif svalue == "y" or svalue == "m":
+        return svalue
+    return "\"%s\"" % value
+
+def write_kconfig(path, dict):
+    if path:
+        with open(path, "w") as cfgfile:
+            cfgfile.write("\n")
+            for i in dict.iteritems():
+                cfgfile.write("%s=%s\n" % (i[0], i[1]))
+            cfgfile.write("\n")
 
 python do_kernel_configure_generate () {
-    pass
+    cfgs = {}
+    for i in d.keys():
+        if i.startswith("MACHINE_KCONFIG_"):
+            if d.getVar(i, True):
+                cfgname = "CONFIG" + i[len("MACHINE_KCONFIG"):]
+                cfgs[cfgname] = field_kconfig(d.getVar(i, True))
+    write_kconfig(d.getVar("KERNEL_CONFIGS_VAR_GENERATED", True), cfgs)
 }
 
 do_kernel_configure_merge () {
