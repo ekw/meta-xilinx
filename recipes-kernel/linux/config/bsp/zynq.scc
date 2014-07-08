@@ -1,0 +1,11 @@
+kconf hardware zynq.cfg
+kconf hardware zynq-peripherals.cfg
+
+include cfg/usb-mass-storage.scc
+
+include features/scsi/scsi.scc
+include features/scsi/disk.scc
+kconf non-hardware features/scsi-generic.cfg
+
+kconf hardware features/mtd.cfg
+kconf hardware features/uio.cfg
