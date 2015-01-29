@@ -1,0 +1,4 @@
+define KFEATURE_DESCRIPTION "Kernel Config for zc702-zynq7-amp specific setup"
+define KFEATURE_COMPATIBILITY board
+
+kconf hardware remoteproc.cfg

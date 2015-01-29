@@ -1,0 +1,18 @@
+/dts-v1/;
+/include/ "zynq7-base.dtsi"
+/include/ "zc702-zynq7-board.dtsi"
+/ {
+	ps7_axi_interconnect_0: amba@0 {
+		test: remoteproc-test@0 {
+			compatible = "xlnx,zynq_remoteproc";
+			reg = <0x0 0x10000000>;
+			interrupt-parrent = <&ps7_scugic_0>;
+			interrupts = <0 37 4 0 38 4>;
+			firmware = "freertos";
+			ipino = <8>;
+			vring0 = <2>;
+			vring1 = <3>;
+		} ;
+	} ;
+} ;
+
